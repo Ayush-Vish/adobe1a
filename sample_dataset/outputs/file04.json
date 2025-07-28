@@ -1,77 +1,25 @@
 {
-    "document": "file04.pdf",
-    "sections": [
+    "title": "Parsippany -Troy Hills STEM Pathways",
+    "outline": [
         {
-            "document": "file04.pdf",
-            "page_number": 1,
-            "section_title": "Mission Statement:",
-            "content": ""
+            "level": "H1",
+            "text": "Parsippany -Troy Hills STEM Pathways",
+            "page": 1
         },
         {
-            "document": "file04.pdf",
-            "page_number": 1,
-            "section_title": "To provide PTHSD high school students with the opportunity to",
-            "content": "Mission Statement: To provide PTHSD high school students with the opportunity to\nconcentrate their studies, beyond those required in high school, in the areas of science,\ntechnology, engineering, and mathematics, and expose students to relevant real world\nexperiences through project work, conferences and presentations to enhance their high school\nexperience."
+            "level": "H2",
+            "text": "PATHWAY OPTIONS",
+            "page": 1
         },
         {
-            "document": "file04.pdf",
-            "page_number": 1,
-            "section_title": "Goals:",
-            "content": "Goals:\n• Inspire keen interest in mathematics, science, engineering, and\ntechnology, develop strong scholarship in the subject and\npromote the enjoyment of these studies in high school.\n• Expose students to potential career opportunities in the field.\n• Encourage students to pursue higher education and major in"
+            "level": "H2",
+            "text": "Elective Course Offerings",
+            "page": 1
         },
         {
-            "document": "file04.pdf",
-            "page_number": 1,
-            "section_title": "STEM careers.",
-            "content": "STEM careers.\n• Promote interactions with STEM professionals to learn about"
-        },
-        {
-            "document": "file04.pdf",
-            "page_number": 1,
-            "section_title": "future opportunities.",
-            "content": "future opportunities.\n• Support field experiences connected to the world outside of\nthe school building.\n• Signal to employers, universities, training programs, and\nmilitary that a student has completed a comprehensive course\nof study in a specialized area.\n• Cultivate transferable work habits such as perseverance, goal\nsetting, and self-direction."
-        },
-        {
-            "document": "file04.pdf",
-            "page_number": 1,
-            "section_title": "PATHWAY OPTIONS",
-            "content": "PATHWAY OPTIONS"
-        },
-        {
-            "document": "file04.pdf",
-            "page_number": 1,
-            "section_title": "REGULAR PATHWAY",
-            "content": ""
-        },
-        {
-            "document": "file04.pdf",
-            "page_number": 1,
-            "section_title": "DISTINCTION PATHWAY",
-            "content": "REGULAR PATHWAY\nDISTINCTION PATHWAY\n●\n4 credits of Math - At least one math\ncourse should be an AP Math class."
-        },
-        {
-            "document": "file04.pdf",
-            "page_number": 1,
-            "section_title": "4 credits of Math",
-            "content": "●\n4 credits of Math"
-        },
-        {
-            "document": "file04.pdf",
-            "page_number": 1,
-            "section_title": "4 credits of Science- At least one",
-            "content": "●\n4 credits of Science- At least one"
-        },
-        {
-            "document": "file04.pdf",
-            "page_number": 1,
-            "section_title": "4 credits of Science",
-            "content": "●\n4 credits of Science\nscience course should be an AP"
-        },
-        {
-            "document": "file04.pdf",
-            "page_number": 1,
-            "section_title": "4 credits of STEM-designated electives",
-            "content": "●\n4 credits of STEM-designated electives\n●\nMaintain an overall 2.85 GPA\n●\nParticipate in a minimum of 3 STEM\npresentations/conferences each year\nwith a required minimum total of 12\npresentations/conferences throughout\nthe 4 years . *\n●\nJoin and actively participate in a\nSTEM-related extracurricular activity or\nclub every year of attendance. -\nScience class.\n●\n4 credits of STEM-designated electives\n- One must be a Computer\nScience/Technology Class\n●\nMaintain an overall 3.5 GPA\n●\nParticipate in a minimum of 3 STEM\npresentations/conferences a year with a\nrequired minimum total of 12\npresentations/conferences throughout\nthe 4 years.\n●\nJoin and actively participate in a\nSTEM-related extracurricular activity or\nclub every year of attendance.\n●\nEither participate in an internship or\ndesign and implement a community\nimpact project."
+            "level": "H2",
+            "text": "What Colleges Say!",
+            "page": 1
         }
     ]
 }

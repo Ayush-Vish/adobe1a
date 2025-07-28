@@ -5,7 +5,7 @@ import re
 import math
 import statistics
 from collections import Counter, defaultdict
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple
 import time
 import tracemalloc
 import unicodedata
@@ -628,342 +628,39 @@ def process_all_pdfs(input_dir: str, output_dir: str) -> Dict:
     
     return processing_stats
 
-
-#  Round 1b 
-def get_sections_from_pdf(pdf_path: str) -> List[Dict]:
-    """
-    Extract sections with their content from a PDF using heading information.
-    
-    Args:
-        pdf_path: Path to the PDF file.
-    
-    Returns:
-        List of dictionaries containing section metadata and content.
-    """
-    try:
-        doc = pymupdf.open(pdf_path)
-    except Exception as e:
-        print(f"❌ Error opening {pdf_path}: {str(e)}")
-        return []
-    
-    # Step 1: Get headings using existing Round 1A function
-    outline_data = extract_outline_ultra_precise(pdf_path)
-    outline = outline_data["outline"]
-    
-    # Add y-position to outline entries (requires modifying extract_outline_ultra_precise)
-    # Modify extract_outline_ultra_precise to include y_pos in heading_candidates
-    # For simplicity, re-run font analysis to get y-positions
-    font_analyzer = PrecisionFontAnalyzer()
-    body_size, size_to_level, _ = font_analyzer.analyze_document_fonts(doc)
-    heading_candidates = []
-    fuzzy_classifier = AdvancedFuzzyHeadingClassifier()
-    seen_texts = set()
-    
-    for font_info in font_analyzer.font_data:
-        text = font_info['text']
-        normalized_text = fuzzy_classifier.normalize_text(text)
-        if normalized_text in seen_texts:
-            continue
-        seen_texts.add(normalized_text)
-        
-        if (len(text.split()) > 25 or len(text) > 300 or
-            text.count('.') > 3 or text.lower().startswith(('the ', 'this ', 'these ', 'those ', 'a ', 'an '))):
-            continue
-        
-        fuzzy_score, score_breakdown = fuzzy_classifier.calculate_fuzzy_heading_score(
-            text=text, font_size=font_info['size'], avg_font_size=body_size,
-            position_y=font_info['position_y'], page_height=font_info['page_height'],
-            font_flags=font_info['flags'], line_spacing=font_info['line_spacing'],
-            is_isolated=font_info['is_isolated'], prev_line_spacing=font_info['prev_spacing'],
-            next_line_spacing=font_info['next_spacing']
-        )
-        
-        heading_level = None
-        if font_info['size'] in size_to_level:
-            heading_level = size_to_level[font_info['size']]
-        elif fuzzy_score > 0.7:
-            size_ratio = font_info['size'] / body_size
-            heading_level = 'H1' if size_ratio > 1.3 else 'H2' if size_ratio > 1.15 else 'H3'
-        
-        if heading_level and fuzzy_score > 0.6:
-            heading_candidates.append({
-                'text': text,
-                'level': heading_level,
-                'page': font_info['page'],
-                'y_pos': font_info['position_y'],
-                'score': fuzzy_score
-            })
-    
-    heading_candidates.sort(key=lambda x: (x['page'], x['y_pos']))
-    
-    # Step 2: Extract all text blocks
-    text_blocks = extract_all_text_with_positions(doc)
-    
-    # Step 3: Map text to sections
-    sections = []
-    for i, heading in enumerate(heading_candidates):
-        start_page = heading['page']
-        start_y = heading['y_pos']
-        
-        # Determine end boundary
-        end_page = doc.page_count
-        end_y = doc[end_page - 1].rect.height
-        if i + 1 < len(heading_candidates):
-            next_heading = heading_candidates[i + 1]
-            end_page = next_heading['page']
-            end_y = next_heading['y_pos']
-        
-        # Collect text between current and next heading
-        section_content = ""
-        for block in text_blocks:
-            if (block['page'] > start_page or
-                (block['page'] == start_page and block['y_pos'] >= start_y)) and \
-               (block['page'] < end_page or
-                (block['page'] == end_page and block['y_pos'] < end_y)):
-                section_content += block['text'] + "\n"
-        
-        sections.append({
-            "document": os.path.basename(pdf_path),
-            "page_number": heading['page'],
-            "section_title": heading['text'],
-            "content": section_content.strip()
-        })
-    
-    doc.close()
-    return sections
-
 # --- Main Execution ---
+
 if __name__ == "__main__":
-    INPUT_DIRECTORY = "input"
-    OUTPUT_DIRECTORY = "output-deepseek"
-    
-    if not os.path.exists(INPUT_DIRECTORY):
-        os.makedirs(INPUT_DIRECTORY)
-        print(f"📁 Created '{INPUT_DIRECTORY}' folder. Add PDF files there.")
-        exit()
-    
-    print("🚀 Starting Robust PDF Outline Extraction")
-    print("📈 Features: Fuzzy Logic, Statistical Analysis, Advanced Pattern Recognition")
-    
+    INPUT_DIRECTORY = "/app/input"
+    OUTPUT_DIRECTORY = "/app/output"
+
+    print("🚀 Starting PDF Extraction for Challenge 1a")
     start_time = time.time()
     tracemalloc.start()
-    
+
     stats = process_all_pdfs(INPUT_DIRECTORY, OUTPUT_DIRECTORY)
-    
-    # Memory usage
+
     current, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
-    
-    end_time = time.time()
-    total_time = end_time - start_time
-    
-    # Final Report
+    total_time = time.time() - start_time
+
     print("\n" + "="*60)
     print("📊 EXTRACTION REPORT")
     print("="*60)
     print(f"📁 Total PDFs: {stats['total_files']}")
     print(f"✅ Successful: {stats['successful']}")
     print(f"❌ Failed: {stats['failed']}")
-    
     if stats['failed_files']:
         print(f"   Failed files: {', '.join(stats['failed_files'])}")
-    
     print(f"📋 Total headings: {stats['total_headings']}")
-    
     if stats['processing_times']:
         avg_time = sum(stats['processing_times']) / len(stats['processing_times'])
         print(f"⏱️ Avg time: {avg_time:.2f}s per PDF")
-    
     print(f"⏱️ Total time: {total_time:.2f}s")
     print(f"💾 Peak memory: {peak / 1024 / 1024:.1f} MB")
-    
     success_rate = (stats['successful'] / stats['total_files'] * 100) if stats['total_files'] > 0 else 0
     print(f"🎯 Success rate: {success_rate:.1f}%")
-    
     if stats['successful'] > 0:
         avg_headings = stats['total_headings'] / stats['successful']
         print(f"📈 Avg headings: {avg_headings:.1f} per document")
-    
     print("\n🎉 Extraction complete!")
-from typing import List, Dict
-import pymupdf
-
-def extract_all_text_with_positions(doc: pymupdf.Document) -> List[Dict]:
-    """
-    Extract all text blocks from a PDF document with positional metadata.
-    
-    Args:
-        doc: PyMuPDF document object.
-    
-    Returns:
-        List of dictionaries containing text and metadata for each text block.
-    """
-    text_blocks = []
-    
-    for page_num in range(doc.page_count):
-        try:
-            page = doc[page_num]
-            page_height = page.rect.height
-            page_width = page.rect.width
-            blocks = page.get_text("dict")["blocks"]
-            
-            for block in blocks:
-                if "lines" in block:
-                    for line in block["lines"]:
-                        line_text = ""
-                        for span in line["spans"]:
-                            clean_text = span["text"].strip()
-                            if clean_text:
-                                line_text += clean_text + " "
-                        
-                        if line_text.strip():
-                            # Calculate line spacing
-                            prev_spacing = 0
-                            next_spacing = 0
-                            line_idx = block["lines"].index(line)
-                            
-                            if line_idx > 0:
-                                prev_line = block["lines"][line_idx - 1]
-                                if prev_line["spans"]:
-                                    prev_spacing = line["bbox"][1] - prev_line["bbox"][3]
-                            
-                            if line_idx < len(block["lines"]) - 1:
-                                next_line = block["lines"][line_idx + 1]
-                                if next_line["spans"]:
-                                    next_spacing = next_line["bbox"][1] - line["bbox"][3]
-                            
-                            x_center = (line["bbox"][0] + line["bbox"][2]) / 2
-                            
-                            text_blocks.append({
-                                "page": page_num + 1,
-                                "text": line_text.strip(),
-                                "y_pos": line["bbox"][1],  # Top y-coordinate
-                                "page_height": page_height,
-                                "page_width": page_width,
-                                "x_center": x_center,
-                                "line_spacing": prev_spacing + next_spacing,
-                                "font_size": span["size"] if line["spans"] else 0,
-                                "font_flags": span["flags"] if line["spans"] else 0,
-                                "is_isolated": len(block["lines"]) == 1 and len(line["spans"]) == 1
-                            })
-        except Exception as e:
-            print(f"⚠️ Error processing page {page_num + 1}: {str(e)}")
-            continue
-    
-    return text_blocks
-
-
-def main():
-    """
-    Main function to process PDFs for the Adobe India Hackathon 2025 Challenge 1a.
-    Processes all PDFs in the input directory, extracts structured data (title, outline, sections),
-    and saves JSON outputs in the specified format.
-    """
-    INPUT_DIRECTORY = "/app/input"
-    OUTPUT_DIRECTORY = "/app/output"
-    
-    # Ensure input directory exists
-    if not os.path.exists(INPUT_DIRECTORY):
-        print(f"❌ Input directory '{INPUT_DIRECTORY}' does not exist.")
-        return
-    
-    # Create output directory if it doesn't exist
-    os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
-    
-    print("🚀 Starting Robust PDF Outline Extraction")
-    print("📈 Features: Fuzzy Logic, Statistical Analysis, Advanced Pattern Recognition")
-    
-    # Initialize performance tracking
-    start_time = time.time()
-    tracemalloc.start()
-    
-    processing_stats = {
-        'total_files': 0,
-        'successful': 0,
-        'failed': 0,
-        'total_headings': 0,
-        'total_sections': 0,
-        'processing_times': [],
-        'failed_files': []
-    }
-    
-    # Get list of PDF files
-    pdf_files = [f for f in os.listdir(INPUT_DIRECTORY) if f.lower().endswith('.pdf')]
-    processing_stats['total_files'] = len(pdf_files)
-    
-    if not pdf_files:
-        print(f"⚠️ No PDF files found in '{INPUT_DIRECTORY}'")
-    
-    for file in pdf_files:
-        file_path = os.path.join(INPUT_DIRECTORY, file)
-        print(f"\n🔍 Processing {file}...")
-        
-        start_file_time = time.time()
-        
-        try:
-            # Extract sections with content
-            sections = get_sections_from_pdf(file_path)
-            
-            # Create output JSON structure
-            output_data = {
-                "document": file,
-                "sections": sections
-            }
-            
-            # Save output
-            output_filename = os.path.splitext(file)[0] + ".json"
-            output_path = os.path.join(OUTPUT_DIRECTORY, output_filename)
-            
-            with open(output_path, 'w', encoding='utf-8') as f:
-                json.dump(output_data, f, indent=4, ensure_ascii=False)
-            
-            processing_time = time.time() - start_file_time
-            processing_stats['processing_times'].append(processing_time)
-            processing_stats['successful'] += 1
-            processing_stats['total_sections'] += len(sections)
-            
-            print(f"✅ Success: {output_path}")
-            print(f"   Sections: {len(sections)}")
-            print(f"   Time: {processing_time:.2f}s")
-            
-        except Exception as e:
-            print(f"❌ Error processing {file}: {str(e)}")
-            processing_stats['failed'] += 1
-            processing_stats['failed_files'].append(file)
-    
-    # Finalize performance tracking
-    current, peak = tracemalloc.get_traced_memory()
-    tracemalloc.stop()
-    total_time = time.time() - start_time
-    
-    # Generate final report
-    print("\n" + "="*60)
-    print("📊 EXTRACTION REPORT")
-    print("="*60)
-    print(f"📁 Total PDFs: {processing_stats['total_files']}")
-    print(f"✅ Successful: {processing_stats['successful']}")
-    print(f"❌ Failed: {processing_stats['failed']}")
-    
-    if processing_stats['failed_files']:
-        print(f"   Failed files: {', '.join(processing_stats['failed_files'])}")
-    
-    print(f"📋 Total sections: {processing_stats['total_sections']}")
-    
-    if processing_stats['processing_times']:
-        avg_time = sum(processing_stats['processing_times']) / len(processing_stats['processing_times'])
-        print(f"⏱️ Avg time: {avg_time:.2f}s per PDF")
-    
-    print(f"⏱️ Total time: {total_time:.2f}s")
-    print(f"💾 Peak memory: {peak / 1024 / 1024:.1f} MB")
-    
-    success_rate = (processing_stats['successful'] / processing_stats['total_files'] * 100) if processing_stats['total_files'] > 0 else 0
-    print(f"🎯 Success rate: {success_rate:.1f}%")
-    
-    if processing_stats['successful'] > 0:
-        avg_sections = processing_stats['total_sections'] / processing_stats['successful']
-        print(f"📈 Avg sections: {avg_sections:.1f} per document")
-    
-    print("\n🎉 Extraction complete!")
-
-if __name__ == "__main__":
-    main()
