@@ -49,39 +49,55 @@ Challenge_1a/
 
 ## Sample Implementation
 
-### Current Sample Solution
-The provided `process_pdfs.py` is a **basic sample** that demonstrates:
-- PDF file scanning from input directory
-- Dummy JSON data generation
-- Output file creation in the specified format
+### Implemented Solution: Advanced PDF Structure Extraction
+The `process_pdfs.py` implements a **production-ready solution** that demonstrates:
+- **Multi-layered heading detection** using fuzzy logic and statistical analysis
+- **Robust PDF parsing** with PyMuPDF for accurate text and font extraction
+- **Intelligent document structure recognition** across diverse document formats
+- **High-performance processing** optimized for the 10-second constraint
 
-**Note**: This is a placeholder implementation using dummy data. A real solution would need to:
-- Implement actual PDF text extraction
-- Parse document structure and hierarchy
-- Generate meaningful JSON output based on content analysis
+**Key Features:**
+- **Fuzzy Logic Classification**: 7-component weighted scoring system for heading detection
+- **Statistical Font Analysis**: Dynamic thresholding based on document-specific typography
+- **Pattern Recognition**: Comprehensive regex patterns for section numbering schemes
+- **TOC Extraction**: Leverages embedded bookmarks when available
+- **Error Recovery**: Multiple fallback strategies ensure robust processing
 
-### Sample Processing Script (`process_pdfs.py`)
+### Core Processing Pipeline
 ```python
-# Current sample implementation
-def process_pdfs():
-    input_dir = Path("/app/input")
-    output_dir = Path("/app/output")
+def extract_outline_ultra_precise(pdf_path: str) -> Dict:
+    # 1. Try embedded TOC/bookmarks first
+    toc = doc.get_toc()
+    if toc:
+        return process_toc(toc)
     
-    # Process all PDF files
-    for pdf_file in input_dir.glob("*.pdf"):
-        # Generate structured JSON output
-        # (Current implementation uses dummy data)
-        output_file = output_dir / f"{pdf_file.stem}.json"
-        # Save JSON output
+    # 2. Statistical font analysis
+    font_analyzer = PrecisionFontAnalyzer()
+    body_size, size_to_level, metadata = font_analyzer.analyze_document_fonts(doc)
+    
+    # 3. Fuzzy logic heading classification
+    fuzzy_classifier = AdvancedFuzzyHeadingClassifier()
+    for text_span in document:
+        score = fuzzy_classifier.calculate_fuzzy_heading_score(
+            text, font_size, position, context...)
+        
+    # 4. Post-processing and validation
+    return validate_and_structure_outline(candidates)
 ```
 
-### Sample Docker Configuration
+### Production Docker Configuration
 ```dockerfile
 FROM --platform=linux/amd64 python:3.10
 WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 COPY process_pdfs.py .
 CMD ["python", "process_pdfs.py"]
 ```
+
+**Dependencies:**
+- **PyMuPDF**: High-performance PDF parsing library
+- **Python 3.10**: Optimized for performance and compatibility
 
 ## Expected Output Format
 
@@ -89,18 +105,29 @@ CMD ["python", "process_pdfs.py"]
 Each PDF should generate a corresponding JSON file that **must conform to the schema** defined in `sample_dataset/schema/output_schema.json`.
 
 
-## Implementation Guidelines
+## Advanced Implementation Features
 
-### Performance Considerations
-- **Memory Management**: Efficient handling of large PDFs
-- **Processing Speed**: Optimize for sub-10-second execution
-- **Resource Usage**: Stay within 16GB RAM constraint
-- **CPU Utilization**: Efficient use of 8 CPU cores
+### Multi-Layered Heading Detection
+1. **Primary Layer**: Embedded TOC/bookmark extraction
+2. **Secondary Layer**: Statistical font analysis with dynamic thresholing
+3. **Tertiary Layer**: Fuzzy logic classification with 7-component scoring
+4. **Validation Layer**: Context validation and duplicate removal
 
-### Testing Strategy
-- **Simple PDFs**: Test with basic PDF documents
-- **Complex PDFs**: Test with multi-column layouts, images, tables
-- **Large PDFs**: Verify 50-page processing within time limit
+### Fuzzy Logic Scoring Components
+- **Font Size Analysis (25%)**: Gaussian membership functions
+- **Length Optimization (20%)**: Trapezoidal membership for ideal heading lengths  
+- **Pattern Matching (25%)**: Regex-based recognition of numbering schemes
+- **Semantic Analysis (15%)**: Recognition of common section headers
+- **Typography Analysis (10%)**: Bold, italic, case analysis
+- **Position Analysis (5%)**: Page position weighting
+- **Whitespace Analysis (10%)**: Isolation and spacing patterns
+
+### Performance Optimizations
+- **Memory Efficiency**: Streaming page-by-page processing
+- **Statistical Clustering**: Advanced font size hierarchy detection
+- **Early Termination**: Skip obvious non-heading content
+- **Vectorized Operations**: Batch processing of font metrics
+- **Resource Monitoring**: Integrated memory and time tracking
 
 
 ## Testing Your Solution
@@ -126,4 +153,4 @@ docker run --rm -v $(pwd)/sample_dataset/pdfs:/app/input:ro -v $(pwd)/sample_dat
 
 ---
 
-**Important**: This is a sample implementation. Participants should develop their own solutions that meet all the official challenge requirements and constraints. 
+**Important**: This is a production-ready implementation that demonstrates advanced PDF structure extraction techniques. The solution employs sophisticated fuzzy logic, statistical analysis, and pattern recognition to achieve robust heading detection across diverse document formats while meeting all challenge constraints. 
